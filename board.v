@@ -2,20 +2,27 @@
 
 
 
-module Board(width, height, busWidth, x, y, reset, // inputs
-	          outValue); // outputs
+module Board(width, height, busWidth, // inputs
+	          reset, clk, // basic inputs
+			  readX, readY, // read inputs
+			  writeEn, writeX, writeY, writeValue, // write inputs
+	          readValue); // outputs
 	
 	input integer width, height, busWidth;
-	input x[log2(width)-1 : 0];
-	input y[log2(height)-1 : 0];
-	input reset;
-	
-	output outValue[busWidth-1 : 0];
+	input reset, clk;
+	input readX[log2(width)-1 : 0], readY[log2(height)-1 : 0];
+	input writeEn, writeX[log2(width)-1 : 0], writeY[log2(height)-1 : 0], writeValue[busWidth-1 : 0];
+	output readValue[busWidth-1 : 0];
 	
 	reg [width*height-1 : 0] board[busWidth-1 : 0];
 	
-	always @(posedge reset)  // reset entire board
-	begin
+	wire readI, writeI;
+	assign readI = readY*width + readX;
+	assign readValue = board[readI];
+	assign writeI = writeY*width + writeX;
+	
+	always @(posedge reset)
+	begin : reset_block
 		integer i = 0;
 		for(i = 0; i < width*height; i = i+1)
 		begin
@@ -23,6 +30,12 @@ module Board(width, height, busWidth, x, y, reset, // inputs
 		end
 	end
 	
-	assign outValue = board[y*width + x];
+	always @(posedge clk)
+	begin : write_on_clock_block
+		if(writeEn)
+		begin
+			board[writeI] <= writeValue;
+		end
+	end
 	
 endmodule
