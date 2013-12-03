@@ -3,16 +3,16 @@
 
 
 module Board(width, height, busWidth, x, y, reset, // inputs
-	          value); // outputs
+	          outValue); // outputs
 	
 	input integer width, height, busWidth;
 	input x[log2(width)-1 : 0];
 	input y[log2(height)-1 : 0];
 	input reset;
 	
-	output value[busWidth-1 : 0];
+	output outValue[busWidth-1 : 0];
 	
-	reg [width*height-1 : 0] board [busWidth-1 : 0];
+	reg [width*height-1 : 0] board[busWidth-1 : 0];
 	
 	always @(posedge reset)  // reset entire board
 	begin
@@ -22,5 +22,7 @@ module Board(width, height, busWidth, x, y, reset, // inputs
 			board[i] = busWidth'b0;
 		end
 	end
+	
+	assign outValue = board[y*width + x];
 	
 endmodule
