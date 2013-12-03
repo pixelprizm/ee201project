@@ -14,7 +14,7 @@ module Board(width, height, busWidth, x, y, reset, // inputs
 	
 	reg [width*height-1 : 0] board [busWidth-1 : 0];
 	
-	always @(posedge reset)
+	always @(posedge reset)  // reset entire board
 	begin
 		integer i = 0;
 		for(i = 0; i < width*height; i = i+1)
