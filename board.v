@@ -42,7 +42,38 @@ module Board(reset, clk, // basic inputs
 		end
 		else if(incAdjacent)
 		begin
-			
+			if(y > 0)
+			begin : cell_north
+				//TODO increment the cell north of us
+				if(x > 0)
+				begin : cell_northwest
+					//TODO increment the cell northwest of us
+				end
+				if(x < width - 1)
+				begin : cell_northeast
+					//TODO increment the cell northeast of us
+				end
+			end
+			if(y < height - 1)
+			begin : cell_south
+				//TODO increment the cell south of us
+				if(x > 0)
+				begin : cell_southwest
+					//TODO increment the cell southwest of us
+				end
+				if(x < width - 1)
+				begin : cell_southeast
+					//TODO increment the cell southeast of us
+				end
+			end
+			if(x > 0)
+			begin : cell_west
+				//TODO increment the cell west of us
+			end
+			if(x < width - 1)
+			begin : cell_east
+				//TODO increment the cell east of us
+			end
 		end
 	end
 	
