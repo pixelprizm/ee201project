@@ -25,20 +25,20 @@ module Board(reset, clk, // basic inputs
 	integer i = 0; // for the reset for-loop
 	
 	always @(posedge reset, posedge clk)
-	begin : write_block
+	begin
 		if(reset)
-		begin
+		begin : reset_board
 			for(i = 0; i < width*height; i = i+1)
 			begin
 				board[i] = 'b0;
 			end
 		end
 		else if(writeEn)
-		begin
+		begin : write_value
 			board[index(writeX, writeY)] <= writeValue;
 		end
 		else if(incAdjacent)
-		begin
+		begin : increment_adjacent_cells
 			if(writeY > 0)
 			begin : cell_north
 				// note: now we know that there's a cell north of (writeX, writeY)
