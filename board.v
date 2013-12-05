@@ -4,7 +4,7 @@
 
 module Board(reset, clk, // basic inputs
 			  readX, readY, // read inputs
-			  writeEn, writeX, writeY, writeValue, // write inputs
+			  writeEn, writeX, writeY, writeValue, incAdjacent, // write inputs
 	          readValue); // outputs
 	parameter width = 8, height = 8, busWidth = 8;
 	
@@ -12,6 +12,7 @@ module Board(reset, clk, // basic inputs
 	input [$clog2(width)-1 : 0] readX;
 	input [$clog2(height)-1 : 0] readY;
 	input writeEn;
+	input incAdjacent;
 	input [$clog2(width)-1 : 0] writeX;
 	input [$clog2(height)-1 : 0] writeY;
 	input [busWidth-1 : 0] writeValue;
@@ -26,19 +27,22 @@ module Board(reset, clk, // basic inputs
 	
 	integer i = 0; // for the below for-loop
 	
-	always @(posedge reset)
-	begin : reset_block
-		for(i = 0; i < width*height; i = i+1)
+	always @(posedge reset, posedge clk)
+	begin : write_block
+		if(reset)
 		begin
-			board[i] = 'b0;
+			for(i = 0; i < width*height; i = i+1)
+			begin
+				board[i] = 'b0;
+			end
 		end
-	end
-	
-	always @(posedge clk)
-	begin : write_on_clock_block
-		if(writeEn)
+		else if(writeEn)
 		begin
 			board[writeI] <= writeValue;
+		end
+		else if(incAdjacent)
+		begin
+			
 		end
 	end
 	
