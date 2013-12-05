@@ -6,7 +6,7 @@ module Board(reset, clk, // basic inputs
 			  readX, readY, // read inputs
 			  writeEn, writeX, writeY, writeValue, incAdjacent, // write inputs
 	          readValue); // outputs
-	parameter width = 8, height = 8, busWidth = 8;
+	parameter width = 8, height = 8, busWidth = 1;
 	
 	input reset, clk;
 	input [$clog2(width)-1 : 0] readX;
@@ -22,7 +22,7 @@ module Board(reset, clk, // basic inputs
 	
 	assign readValue = board[index(readX, readY)];
 	
-	integer i = 0; // for the below for-loop
+	integer i = 0; // for the reset for-loop
 	
 	always @(posedge reset, posedge clk)
 	begin : write_block
@@ -75,7 +75,7 @@ module Board(reset, clk, // basic inputs
 		end
 	end
 	
-	// Helper function to get the index from a given x and y
+	// Helper function to get the index of the board array from a given x and y
 	function index;
 	input x, y;
 		index = y*width + x;
