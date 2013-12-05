@@ -20,10 +20,7 @@ module Board(reset, clk, // basic inputs
 	
 	reg [busWidth-1 : 0] board[width*height-1 : 0];
 	
-	wire readI, writeI;
-	assign readI = readY*width + readX;
-	assign readValue = board[readI];
-	assign writeI = writeY*width + writeX;
+	assign readValue = board[index(readX, readY)];
 	
 	integer i = 0; // for the below for-loop
 	
@@ -38,43 +35,50 @@ module Board(reset, clk, // basic inputs
 		end
 		else if(writeEn)
 		begin
-			board[writeI] <= writeValue;
+			board[index(writeX, writeY)] <= writeValue;
 		end
 		else if(incAdjacent)
 		begin
-			if(y > 0)
+			if(writeY > 0)
 			begin : cell_north
-				//TODO increment the cell north of us
-				if(x > 0)
+				// note: now we know that there's a cell north of (writeX, writeY)
+				board[index(writeX, writeY-1)] <= board[index(writeX, writeY-1)] + 1;
+				if(writeX > 0)
 				begin : cell_northwest
-					//TODO increment the cell northwest of us
+					board[index(writeX-1, writeY-1)] <= board[index(writeX-1, writeY-1)] + 1;
 				end
-				if(x < width - 1)
+				if(writeX < width - 1)
 				begin : cell_northeast
-					//TODO increment the cell northeast of us
+					board[index(writeX+1, writeY-1)] <= board[index(writeX+1, writeY-1)] + 1;
 				end
 			end
-			if(y < height - 1)
+			if(writeY < height - 1)
 			begin : cell_south
-				//TODO increment the cell south of us
-				if(x > 0)
+				board[index(writeX, writeY+1)] <= board[index(writeX, writeY+1)] + 1;
+				if(writeX > 0)
 				begin : cell_southwest
-					//TODO increment the cell southwest of us
+					board[index(writeX-1, writeY+1)] <= board[index(writeX-1, writeY+1)] + 1;
 				end
-				if(x < width - 1)
+				if(writeX < width - 1)
 				begin : cell_southeast
-					//TODO increment the cell southeast of us
+					board[index(writeX+1, writeY+1)] <= board[index(writeX+1, writeY+1)] + 1;
 				end
 			end
-			if(x > 0)
+			if(writeX > 0)
 			begin : cell_west
-				//TODO increment the cell west of us
+				board[index(writeX-1, writeY)] <= board[index(writeX-1, writeY)] + 1;
 			end
-			if(x < width - 1)
+			if(writeX < width - 1)
 			begin : cell_east
-				//TODO increment the cell east of us
+				board[index(writeX+1, writeY)] <= board[index(writeX+1, writeY)] + 1;
 			end
 		end
 	end
+	
+	// Helper function to get the index from a given x and y
+	function index;
+	input x, y;
+		index = y*width + x;
+	endfunction
 	
 endmodule
