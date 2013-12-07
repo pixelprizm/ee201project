@@ -1,18 +1,23 @@
 //place_Mines
 `timescale 1ns / 1ps
 
-module PlaceMines(reset, clk, // basic inputs
-				   totalMines, // set the total mines to add
+module PlaceMines(reset, clk, start, ack, // basic inputs
+				   totalMinesIn, // set the total mines to add
 				   x, y, // dimension outputs for reading and writing
 				   mineBoardReadValue, // read inputs
-				   mineBoardWriteValue, mineBoardWriteEn, numBoardIncAdjacent, // write enable outputs
+				   placeMineEn, // write enable outputs
 				   done // indicator of DONE state
 		);
 	parameter boardWidth = 8, boardHeight = 8;
+	localparam maxBoardCountWidth = 6; // $clog2(boardWidth * boardHeight); //later, maybe add this
+	
+	// Basic inputs:
+	input reset, clk, start, ack;
 	
 	// Counting mines:
-	input integer totalMines;
-	integer count;
+	input [maxBoardCountWidth-1 : 0] totalMinesIn;
+	reg [maxBoardCountWidth-1 : 0] totalMines;
+	reg [maxBoardCountWidth-1 : 0] count;
 	
 	// Reading value from the board:
 	output reg [$clog2(boardWidth)-1 : 0] x;
@@ -21,14 +26,15 @@ module PlaceMines(reset, clk, // basic inputs
 	
 	// Writing values to the board:
 	// (use the same x and y for writeX and writeY)
-	output reg mineBoardWriteValue, mineBoardWriteEn, numBoardIncAdjacent; //maybe we could remove numBoardIncAdjacent because it is always equivalent to mineBoardWriteEn. (maybe)
+	output reg placeMineEn;
+	
+	// State:
+	reg[3:0] state;
+	localparam INIT=4'b0001, PLACE_MINE=4'b0010, CHANGE_XY=4'b0100, DONE=4'b1000;
 	
 	// Done indicator:
 	output wire done;
 	assign done = state == DONE;
-	
-	reg[3:0] state;
-	localparam INIT=4'b0001, PLACE_MINE=4'b0010, CHANGE_XY=4'b0100, DONE=4'b1000;
 	
 	always @ (posedge clk, posedge reset) 
 	begin
@@ -42,16 +48,15 @@ module PlaceMines(reset, clk, // basic inputs
 			case (state)
 				INIT:
 				begin
-					if(start)
 					// ST
-					state <= PLACE_MINE;
+					if(start) state <= PLACE_MINE;
 					// RTL
 					// Initializing x and y to be certain values
 					x <= 0;
 					y <= boardHeight/2;
 					count <= 0;
-					totalMines <= 10;
-					//TODO set mineBoardWriteValue etc to zero
+					totalMines <= totalMinesIn;
+					placeMineEn <= 0;
 				end
 				
 				PLACE_MINE:
@@ -64,9 +69,7 @@ module PlaceMines(reset, clk, // basic inputs
 					//RTL
 					if(mineBoardReadValue==1'b0)
 					begin
-						mineBoardWriteValue <= 1;
-						mineBoardWriteEn <= 1;
-						numBoardIncAdjacent <= 1;
+						placeMineEn <= 1;
 						count<=count+1;
 					end
 					else
@@ -81,14 +84,13 @@ module PlaceMines(reset, clk, // basic inputs
 				CHANGE_XY:
 				begin
 					//ST
-					state<=placeMine;
+					state <= PLACE_MINE;
 					//RTL
 					// Using Linear Congruential Generator for kinda-random numbers.
 					// note: the values chosen for a and b in (a*x + b) % m are chosen based on boardWidth == 8 and boardHeight == 8
 					x <= (x + boardWidth/2 + 1) % boardWidth;
 					y <= ((boardHeight/2 + 1)*y + (boardHeight/2 + 1)) % boardHeight;
-					mineBoardWriteEn <= 0;
-					numBoardIncAdjacent <= 0;
+					placeMineEn <= 0;
 				end
 				DONE:
 				begin
