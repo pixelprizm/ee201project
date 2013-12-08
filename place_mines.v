@@ -5,7 +5,7 @@ module PlaceMines(reset, clk, start, ack, // basic inputs
 				   x, y, // dimension outputs for reading and writing
 				   mineBoardReadValue, // read inputs
 				   placeMineEn, // write enable outputs
-				   init, placeMine, changeXY, done // indicators of states
+				   init, placeMine, changeXY, almostDone, done // indicators of states
 		);
 	parameter boardWidth = 8, boardHeight = 8;
 	localparam maxBoardCountWidth = 6; // $clog2(boardWidth * boardHeight); //later, maybe add this
@@ -28,21 +28,26 @@ module PlaceMines(reset, clk, start, ack, // basic inputs
 	output reg placeMineEn;
 	
 	// State:
-	reg[3:0] state;
-	localparam INIT=4'b0001, PLACE_MINE=4'b0010, CHANGE_XY=4'b0100, DONE=4'b1000;
+	reg[4:0] state;
+	localparam INIT=5'b00001, PLACE_MINE=5'b00010, CHANGE_XY=5'b00100, ALMOST_DONE=5'b01000, DONE=5'b10000;
 	
 	// Done indicator:
-	output wire init, placeMine, changeXY, done;
+	output wire init, placeMine, changeXY, almostDone, done;
 	assign init = state == INIT;
 	assign placeMine = state == PLACE_MINE;
 	assign changeXY = state == CHANGE_XY;
+	assign almostDone = state == ALMOST_DONE;
 	assign done = state == DONE;
 	
 	always @ (posedge clk, posedge reset) 
 	begin
 		if(reset)
-		begin 
+		begin
 			state <= INIT;
+			
+			// Initializing x and y to be certain values
+			x <= 0;
+			y <= boardHeight/2;
 		end
 		
 		else
@@ -53,9 +58,7 @@ module PlaceMines(reset, clk, start, ack, // basic inputs
 					// ST
 					if(start) state <= PLACE_MINE;
 					// RTL
-					// Initializing x and y to be certain values
-					x <= 0;
-					y <= boardHeight/2;
+					// purposely not resetting x and y so that they will be different next time
 					count <= 0;
 					totalMines <= totalMinesIn;
 					placeMineEn <= 0;
@@ -65,17 +68,17 @@ module PlaceMines(reset, clk, start, ack, // basic inputs
 				begin
 					//ST
 					if(count==totalMines-1 && mineBoardReadValue==1'b0)
-						state <= DONE;
+						state <= ALMOST_DONE;
 					else 
 						state <= CHANGE_XY;
 					//RTL
-					if(mineBoardReadValue==1'b0)
+					if(mineBoardReadValue == 1'b0)
 					begin
 						placeMineEn <= 1;
 						count<=count+1;
 					end
 					else
-					begin	
+					begin
 						// To prevent infinite loop due to non-random number changes to x and y 
 						// (ie if x and y are stuck in a pattern)
 						x <= x + 1;
@@ -94,6 +97,14 @@ module PlaceMines(reset, clk, start, ack, // basic inputs
 					y <= ((boardHeight/2 + 1)*y + (boardHeight/2 + 1)) % boardHeight;
 					placeMineEn <= 0;
 				end
+				
+				ALMOST_DONE:
+				begin
+					//ST
+					state <= DONE;
+					placeMineEn <= 0;
+				end
+				
 				DONE:
 				begin
 					//ST

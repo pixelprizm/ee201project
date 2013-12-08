@@ -85,6 +85,19 @@ module Board_tb;
 	end
 	endtask
 	
+	task placeMine;
+		input [$clog2(boardWidth_tb)-1 : 0] x;
+		input [$clog2(boardHeight_tb)-1 : 0] y;
+	begin
+		placeMineEn_tb = 1;
+		placeMineX_tb = x;
+		placeMineY_tb = y;
+		@(posedge clk_tb);
+		#2;
+		placeMineEn_tb = 0;
+	end
+	endtask
+	
 	
 	
 	initial
@@ -100,50 +113,17 @@ module Board_tb;
 		@(posedge clk_tb);
 		#2;
 		
-		placeMineEn_tb = 1;
-		
-		placeMineX_tb = 0;
-		placeMineY_tb = 0;
-		@(posedge clk_tb);
-		#2;
-		
-		placeMineX_tb = 0;
-		placeMineY_tb = 1;
-		@(posedge clk_tb);
-		#2;
-		
-		placeMineX_tb = 0;
-		placeMineY_tb = 2;
-		@(posedge clk_tb);
-		#2;
-		
-		placeMineX_tb = 1;
-		placeMineY_tb = 0;
-		@(posedge clk_tb);
-		#2;
-		
-		placeMineX_tb = 1;
-		placeMineY_tb = 2;
-		@(posedge clk_tb);
-		#2;
-		
-		placeMineX_tb = 2;
-		placeMineY_tb = 0;
-		@(posedge clk_tb);
-		#2;
-		
-		placeMineX_tb = 2;
-		placeMineY_tb = 1;
-		@(posedge clk_tb);
-		#2;
-		
-		placeMineX_tb = 2;
-		placeMineY_tb = 2;
-		@(posedge clk_tb);
-		#2;
-		
-		placeMineEn_tb = 0;
-		#1;
+		placeMine(3, 3);
+		placeMine(4, 3);
+		placeMine(5, 3);
+		placeMine(6, 3);
+		placeMine(6, 4);
+		placeMine(6, 5);
+		placeMine(6, 6);
+		placeMine(6, 7);
+		placeMine(5, 7);
+		placeMine(4, 7);
+		placeMine(3, 7);
 		
 		display_combined_board;
 		

@@ -9,10 +9,9 @@ module PlaceMines_tb;
 	wire [$clog2(boardWidth_tb)-1 : 0] placeMineX_tb;
 	wire [$clog2(boardHeight_tb)-1 : 0] placeMineY_tb;
 	wire mineBoardReadValue_tb;
-	//wire placeMineEn_tb;
-	reg placeMineEn_tb;
+	wire placeMineEn_tb;
 	
-	wire qInit_tb, qPlaceMine_tb, qChangeXY_tb, done_tb;
+	wire qInit_tb, qPlaceMine_tb, qChangeXY_tb, qAlmostDone_tb, done_tb;
 	reg [4*8-1 : 0] stateString;
 	
 	parameter CLK_PERIOD = 20;
@@ -44,25 +43,26 @@ module PlaceMines_tb;
 			);
 	
 	
-	/*
+	
 	PlaceMines #(.boardWidth(boardWidth_tb), .boardHeight(boardHeight_tb)) UUT (
 			.reset(reset_tb), .clk(clk_tb), .start(start_tb), .ack(ack_tb),
 			.totalMinesIn(totalMines_tb),
 			.x(placeMineX_tb), .y(placeMineY_tb),
 			.mineBoardReadValue(mineBoardReadValue_tb),
 			.placeMineEn(placeMineEn_tb),
-			.init(qInit_tb), .placeMine(qPlaceMine_tb), .changeXY(qChangeXY_tb), .done(done_tb)
+			.init(qInit_tb), .placeMine(qPlaceMine_tb), .changeXY(qChangeXY_tb), .almostDone(qAlmostDone_tb), .done(done_tb)
 			);
-	*/
+	
 	
 	
 	always @(*)
 	begin
-		case({qInit_tb, qPlaceMine_tb, qChangeXY_tb, done_tb})
-			4'b1000: stateString = "INIT";
-			4'b0100: stateString = "PM  ";
-			4'b0010: stateString = "CXY ";
-			4'b0001: stateString = "DONE";
+		case({qInit_tb, qPlaceMine_tb, qChangeXY_tb, qAlmostDone_tb, done_tb})
+			5'b10000: stateString = "INIT";
+			5'b01000: stateString = "PM  ";
+			5'b00100: stateString = "CXY ";
+			5'b00010: stateString = "ALDN";
+			5'b00001: stateString = "DONE";
 			default: stateString = "UNKN";
 		endcase
 	end
@@ -86,22 +86,32 @@ module PlaceMines_tb;
 		end
 	end
 	
+	
+	
 	integer x_i, y_i;
 	task display_combined_board;
 	begin
+		readBoardX_tb = 0;
+		readBoardY_tb = 0;
 		for(y_i = 0; y_i < boardHeight_tb; y_i = y_i + 1)
 		begin
 			for(x_i = 0; x_i < boardWidth_tb; x_i = x_i + 1)
 			begin
-				readBoardX_tb = x_i;
-				readBoardY_tb = y_i;
 				#0.001; // must be non-zero
+				
+				// Uncomment for specific coordinates:
+				// $write("["); $write(x_i); $write(y_i); $write("]");
 				
 				if(mineBoardReadValue_tb == 1'b1) $write(" *");
 				else $write(adjBoardReadValue_tb);
+				
+				readBoardX_tb = readBoardX_tb + 1;
 			end
-			$write ("\n");
+			$write("\n");
+			
+			readBoardY_tb = readBoardY_tb + 1;
 		end
+		$write("\n");
 	end
 	endtask
 	
@@ -113,8 +123,69 @@ module PlaceMines_tb;
 		@(posedge clk_tb);
 		#2;
 		
-		placeMineEn_tb = 0;
+		display_combined_board;
 		
+		
+		
+		// First test:
+		assign readBoardX_tb = placeMineX_tb;
+		assign readBoardY_tb = placeMineY_tb;
+		// Start pulse:
+		@(posedge clk_tb);
+		#2;
+		totalMines_tb = 10;
+		start_tb = 1;
+		@(posedge clk_tb);
+		#2;
+		start_tb = 0;
+		
+		// Wait for algorithm to complete:
+		@(posedge done_tb);
+		
+		// Ack pulse:
+		#2;
+		ack_tb = 1;
+		@(posedge clk_tb);
+		#2;
+		ack_tb = 0;
+		
+		deassign readBoardX_tb;
+		deassign readBoardY_tb;
+		display_combined_board;
+		
+		
+		
+		// Restart:
+		@(posedge clk_tb);
+		#2;
+		boardReset_tb = 1;
+		@(posedge clk_tb);
+		#2;
+		boardReset_tb = 0;
+		
+		assign readBoardX_tb = placeMineX_tb;
+		assign readBoardY_tb = placeMineY_tb;
+		// Start pulse:
+		@(posedge clk_tb);
+		#2;
+		totalMines_tb = 12;
+		start_tb = 1;
+		@(posedge clk_tb);
+		#2;
+		start_tb = 0;
+		
+		// Wait for algorithm to complete:
+		@(posedge done_tb);
+		
+		// Ack pulse:
+		#2;
+		ack_tb = 1;
+		@(posedge clk_tb);
+		#2;
+		ack_tb = 0;
+		
+		deassign readBoardX_tb;
+		deassign readBoardY_tb;
 		display_combined_board;
 	end
 	
