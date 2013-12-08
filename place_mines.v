@@ -1,4 +1,3 @@
-//place_Mines
 `timescale 1ns / 1ps
 
 module PlaceMines(reset, clk, start, ack, // basic inputs
@@ -6,7 +5,7 @@ module PlaceMines(reset, clk, start, ack, // basic inputs
 				   x, y, // dimension outputs for reading and writing
 				   mineBoardReadValue, // read inputs
 				   placeMineEn, // write enable outputs
-				   done // indicator of DONE state
+				   init, placeMine, changeXY, done // indicators of states
 		);
 	parameter boardWidth = 8, boardHeight = 8;
 	localparam maxBoardCountWidth = 6; // $clog2(boardWidth * boardHeight); //later, maybe add this
@@ -33,7 +32,10 @@ module PlaceMines(reset, clk, start, ack, // basic inputs
 	localparam INIT=4'b0001, PLACE_MINE=4'b0010, CHANGE_XY=4'b0100, DONE=4'b1000;
 	
 	// Done indicator:
-	output wire done;
+	output wire init, placeMine, changeXY, done;
+	assign init = state == INIT;
+	assign placeMine = state == PLACE_MINE;
+	assign changeXY = state == CHANGE_XY;
 	assign done = state == DONE;
 	
 	always @ (posedge clk, posedge reset) 
