@@ -117,45 +117,9 @@ module PlaceMines_tb;
 	
 	
 	
-	initial
-	begin : stimulus
-		@(negedge reset_tb);
-		@(posedge clk_tb);
-		#2;
-		
-		display_combined_board;
-		
-		
-		
-		// First test:
-		assign readBoardX_tb = placeMineX_tb;
-		assign readBoardY_tb = placeMineY_tb;
-		// Start pulse:
-		@(posedge clk_tb);
-		#2;
-		totalMines_tb = 10;
-		start_tb = 1;
-		@(posedge clk_tb);
-		#2;
-		start_tb = 0;
-		
-		// Wait for algorithm to complete:
-		@(posedge done_tb);
-		
-		// Ack pulse:
-		#2;
-		ack_tb = 1;
-		@(posedge clk_tb);
-		#2;
-		ack_tb = 0;
-		
-		deassign readBoardX_tb;
-		deassign readBoardY_tb;
-		display_combined_board;
-		
-		
-		
-		// Restart:
+	task generate_board;
+	input [5:0] totalMines;
+	begin
 		@(posedge clk_tb);
 		#2;
 		boardReset_tb = 1;
@@ -165,10 +129,11 @@ module PlaceMines_tb;
 		
 		assign readBoardX_tb = placeMineX_tb;
 		assign readBoardY_tb = placeMineY_tb;
+		
 		// Start pulse:
 		@(posedge clk_tb);
 		#2;
-		totalMines_tb = 12;
+		totalMines_tb = totalMines;
 		start_tb = 1;
 		@(posedge clk_tb);
 		#2;
@@ -187,6 +152,27 @@ module PlaceMines_tb;
 		deassign readBoardX_tb;
 		deassign readBoardY_tb;
 		display_combined_board;
+		#1; // to make sure that display_combined_board completes
+	end
+	endtask
+	
+	
+	
+	initial
+	begin : stimulus
+		@(negedge reset_tb);
+		@(posedge clk_tb);
+		#2;
+		
+		// Initial (all 0's) board
+		display_combined_board;
+		#1;
+		
+		// Tests:
+		generate_board(10);
+		generate_board(12);
+		generate_board(6);
+		generate_board(20);
 	end
 	
 endmodule
