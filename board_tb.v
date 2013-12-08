@@ -2,33 +2,27 @@
 
 
 
-module PlaceMines_tb;
+module Board_tb;
 	
-	reg reset_tb, clk_tb, start_tb, ack_tb;
-	reg [5:0] totalMines_tb;
-	wire [$clog2(boardWidth_tb)-1 : 0] placeMineX_tb;
-	wire [$clog2(boardHeight_tb)-1 : 0] placeMineY_tb;
-	wire mineBoardReadValue_tb;
-	//wire placeMineEn_tb;
-	reg placeMineEn_tb;
-	
-	wire qInit_tb, qPlaceMine_tb, qChangeXY_tb, done_tb;
-	reg [4*8-1 : 0] stateString;
+	reg reset_tb, clk_tb;
 	
 	parameter CLK_PERIOD = 20;
 	localparam boardWidth_tb = 8, boardHeight_tb = 8;
 	
+	// Place mines:
+	reg [$clog2(boardWidth_tb)-1 : 0] placeMineX_tb;
+	reg [$clog2(boardHeight_tb)-1 : 0] placeMineY_tb;
+	reg placeMineEn_tb;
 	
-	
-	// Board Reading and Writing:
-	reg boardReset_tb;
+	// Board Reading:
 	reg [$clog2(boardWidth_tb)-1 : 0] readBoardX_tb;
 	reg [$clog2(boardHeight_tb)-1 : 0] readBoardY_tb;
-	// (mineBoardReadValue_tb is declared above)
 	wire [3:0] adjBoardReadValue_tb;
 	
+	
+	
 	Board #(.width(boardWidth_tb), .height(boardHeight_tb), .busWidth(1)) mineBoard (
-			.reset(boardReset_tb), .clk(clk_tb),
+			.reset(reset_tb), .clk(clk_tb),
 			.readX(readBoardX_tb), .readY(readBoardY_tb),
 			.readValue(mineBoardReadValue_tb),
 			.writeEn(placeMineEn_tb), .writeX(placeMineX_tb), .writeY(placeMineY_tb),
@@ -36,7 +30,7 @@ module PlaceMines_tb;
 			);
 			
 	Board #(.width(boardWidth_tb), .height(boardHeight_tb), .busWidth(4)) adjBoard (
-			.reset(boardReset_tb), .clk(clk_tb),
+			.reset(reset_tb), .clk(clk_tb),
 			.readX(readBoardX_tb), .readY(readBoardY_tb),
 			.readValue(adjBoardReadValue_tb),
 			.writeEn(1'b0), .writeX(placeMineX_tb), .writeY(placeMineY_tb),
@@ -44,36 +38,12 @@ module PlaceMines_tb;
 			);
 	
 	
-	/*
-	PlaceMines #(.boardWidth(boardWidth_tb), .boardHeight(boardHeight_tb)) UUT (
-			.reset(reset_tb), .clk(clk_tb), .start(start_tb), .ack(ack_tb),
-			.totalMinesIn(totalMines_tb),
-			.x(placeMineX_tb), .y(placeMineY_tb),
-			.mineBoardReadValue(mineBoardReadValue_tb),
-			.placeMineEn(placeMineEn_tb),
-			.init(qInit_tb), .placeMine(qPlaceMine_tb), .changeXY(qChangeXY_tb), .done(done_tb)
-			);
-	*/
-	
-	
-	always @(*)
-	begin
-		case({qInit_tb, qPlaceMine_tb, qChangeXY_tb, done_tb})
-			4'b1000: stateString = "INIT";
-			4'b0100: stateString = "PM  ";
-			4'b0010: stateString = "CXY ";
-			4'b0001: stateString = "DONE";
-			default: stateString = "UNKN";
-		endcase
-	end
 	
 	initial
 	begin : reset_generator
 		reset_tb = 1;
-		boardReset_tb = 1;
 		#(2*CLK_PERIOD)
 		reset_tb = 0;
-		boardReset_tb = 0;
 	end
 	
 	initial
