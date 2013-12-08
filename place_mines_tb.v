@@ -97,7 +97,7 @@ module PlaceMines_tb;
 				readBoardY_tb = y_i;
 				#0.001; // must be non-zero
 				
-				if(mineBoardReadValue_tb == 1'b1) $write("*");
+				if(mineBoardReadValue_tb == 1'b1) $write(" *");
 				else $write(adjBoardReadValue_tb);
 			end
 			$write ("\n");

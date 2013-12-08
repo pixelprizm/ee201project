@@ -59,19 +59,27 @@ module Board_tb;
 	integer x_i, y_i;
 	task display_combined_board;
 	begin
+		readBoardX_tb = 0;
+		readBoardY_tb = 0;
 		for(y_i = 0; y_i < boardHeight_tb; y_i = y_i + 1)
 		begin
 			for(x_i = 0; x_i < boardWidth_tb; x_i = x_i + 1)
 			begin
-				readBoardX_tb = x_i;
-				readBoardY_tb = y_i;
-				#0.001; // must be non-zero
+				#1 //#0.001; // must be non-zero
 				
-				if(mineBoardReadValue_tb == 1'b1) $write("*");
+				// Uncomment for specific coordinates:
+				// $write("["); $write(x_i); $write(y_i); $write("]");
+				
+				if(mineBoardReadValue_tb == 1'b1) $write(" *");
 				else $write(adjBoardReadValue_tb);
+				
+				readBoardX_tb = readBoardX_tb + 1;
 			end
-			$write ("\n");
+			$write("\n");
+			
+			readBoardY_tb = readBoardY_tb + 1;
 		end
+		$write("\n");
 	end
 	endtask
 	
@@ -86,6 +94,27 @@ module Board_tb;
 		placeMineEn_tb = 0;
 		
 		display_combined_board;
+		
+		@(posedge clk_tb);
+		#2;
+		
+		// Setup to place a mine:
+		placeMineX_tb = 3;
+		placeMineY_tb = 3;
+		placeMineEn_tb = 1;
+		@(posedge clk_tb); // on this clock edge the board should do its mine placing / adj calculation
+		#2;
+		
+		placeMineX_tb = 5;
+		placeMineY_tb = 2;
+		@(posedge clk_tb);
+		#2;
+		
+		placeMineEn_tb = 0;
+		#1;
+		
+		display_combined_board;
+		
 	end
 	
 endmodule

@@ -76,9 +76,12 @@ module Board(reset, clk, // basic inputs
 	end
 	
 	// Helper function to get the index of the board array from a given x and y
-	function index;
-	input x, y;
-		index = y*width + x;
+	function [$clog2(width*height):0] index;
+		input [$clog2(width)-1 : 0] x;
+		input [$clog2(height)-1 : 0] y;
+		begin
+			index = y*width + x;
+		end
 	endfunction
 	
 endmodule
