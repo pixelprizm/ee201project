@@ -56,6 +56,8 @@ module Board_tb;
 		end
 	end
 	
+	
+	
 	integer x_i, y_i;
 	task display_combined_board;
 	begin
@@ -98,14 +100,44 @@ module Board_tb;
 		@(posedge clk_tb);
 		#2;
 		
-		// Setup to place a mine:
-		placeMineX_tb = 3;
-		placeMineY_tb = 3;
 		placeMineEn_tb = 1;
-		@(posedge clk_tb); // on this clock edge the board should do its mine placing / adj calculation
+		
+		placeMineX_tb = 0;
+		placeMineY_tb = 0;
+		@(posedge clk_tb);
 		#2;
 		
-		placeMineX_tb = 5;
+		placeMineX_tb = 0;
+		placeMineY_tb = 1;
+		@(posedge clk_tb);
+		#2;
+		
+		placeMineX_tb = 0;
+		placeMineY_tb = 2;
+		@(posedge clk_tb);
+		#2;
+		
+		placeMineX_tb = 1;
+		placeMineY_tb = 0;
+		@(posedge clk_tb);
+		#2;
+		
+		placeMineX_tb = 1;
+		placeMineY_tb = 2;
+		@(posedge clk_tb);
+		#2;
+		
+		placeMineX_tb = 2;
+		placeMineY_tb = 0;
+		@(posedge clk_tb);
+		#2;
+		
+		placeMineX_tb = 2;
+		placeMineY_tb = 1;
+		@(posedge clk_tb);
+		#2;
+		
+		placeMineX_tb = 2;
 		placeMineY_tb = 2;
 		@(posedge clk_tb);
 		#2;
